@@ -1,0 +1,218 @@
+{
+  "name": "G2-1 Slack hiring alert \u00b7 sales/RevOps on Ashby boards",
+  "nodes": [
+    {
+      "id": "5d1b13d2-c126-4e68-b3f4-755b7bdb4b80",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -380
+      ],
+      "parameters": {
+        "content": "## G2-1 \u2014 Slack alert when a target posts a sales/RevOps role\n\n**Who:** recruiters / founders watching Ashby boards.\n\n**Flow:** Schedule \u2192 Buyer inputs \u2192 Apify `publicrecords/ashby-jobs-scraper` (run-sync-get-dataset-items) \u2192 Code filter (sales/RevOps titles) \u2192 Slack.\n\n**Setup:** 1) Header Auth `Authorization: Bearer <APIFY_TOKEN>` (publisher). 2) Slack bot token credential. 3) Edit companies / since / maxResults. 4) Full ~200 slug list: `ashby-board-slugs.json` (import path `examples/g2-1-slack-hiring-alert/`).\n\n**Cost:** actor-start $0.005 + $0.0009/job; keep maxResults\u226420 and maxTotalChargeUsd\u22640.5 for demos.",
+        "height": 460,
+        "width": 520,
+        "color": 4
+      }
+    },
+    {
+      "id": "921c568c-62d1-46a4-a171-3dff71bccf99",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "20e80549-da60-4b31-be18-7197f62df641",
+      "name": "Buyer inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a9ed8777-6823-42cf-ae30-77340ee1c0fe",
+              "name": "actorInput",
+              "value": "{\"companies\": [\"ramp\", \"linear\", \"notion\", \"vercel\", \"retool\", \"mercury\", \"plaid\", \"brex\", \"rippling\", \"gusto\", \"deel\", \"lattice\", \"gong\", \"apollo\", \"attio\", \"posthog\", \"sentry\", \"launchdarkly\", \"webflow\", \"framer\"], \"since\": \"30d\", \"maxResults\": 20, \"includeDescription\": false}",
+              "type": "string"
+            },
+            {
+              "id": "eabf0896-02d0-4b5d-bb0a-69655cf806e7",
+              "name": "since",
+              "value": "30d",
+              "type": "string"
+            },
+            {
+              "id": "a3ef215b-c428-4092-8ec9-5612c25365ff",
+              "name": "maxTotalChargeUsd",
+              "value": 0.5,
+              "type": "number"
+            },
+            {
+              "id": "2b5d78cf-d391-4a4f-89da-637aaf7345b1",
+              "name": "slackChannel",
+              "value": "C0C4G5A6TN0",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8f72b3b7-34e5-4c41-be99-f22abd701c1e",
+      "name": "Run Ashby Jobs (sync dataset)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.apify.com/v2/acts/publicrecords~ashby-jobs-scraper/run-sync-get-dataset-items?timeout=300&build=latest&maxTotalChargeUsd={{ $json.maxTotalChargeUsd }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.actorInput }}",
+        "options": {
+          "timeout": 300000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_APIFY_HEADER_AUTH",
+          "name": "Apify Publisher Header Auth"
+        }
+      }
+    },
+    {
+      "id": "80c41652-3eb5-42a4-ae59-aa006d34c917",
+      "name": "Filter sales / RevOps",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const KEYWORDS = [/sales/i,/account executive/i,/\\bAE\\b/,/revops/i,/revenue ops/i,/business development/i,/\\bBDR\\b/,/\\bSDR\\b/,/account manager/i,/customer success/i,/\\bCSM\\b/,/go.to.market/i,/\\bGTM\\b/,/partnerships/i,/growth.*sales/i];\nconst items = items.flatMap(i => Array.isArray(i.json) ? i.json.map(j=>({json:j})) : [i]);\nconst hits = [];\nfor (const it of items) {\n  const j = it.json || {};\n  const title = String(j.title || j.jobTitle || j.name || '');\n  const dept = String(j.department || j.team || '');\n  const hay = title + ' ' + dept;\n  if (KEYWORDS.some(re => re.test(hay))) hits.push({json: j});\n}\nif (!hits.length) {\n  return [{json: {matched: 0, note: 'No sales/RevOps titles in this batch', scanned: items.length}}];\n}\nreturn hits.map(h => ({json: {...h.json, matched: 1, scanned: items.length}}));\n"
+      }
+    },
+    {
+      "id": "a0273e81-6700-4772-a5dc-790c54e66436",
+      "name": "Slack hiring alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1160,
+        0
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C4G5A6TN0",
+          "mode": "id"
+        },
+        "text": "=Hiring alert (Ashby): *{{ $json.title || 'batch summary' }}* @ {{ $json.company || $json.companyName || 'target' }}\n{{ $json.jobUrl || $json.url || $json.note || '' }}\nmatched={{ $json.matched }} scanned={{ $json.scanned }}",
+        "otherOptions": {}
+      },
+      "credentials": {
+        "slackApi": {
+          "id": "REPLACE_SLACK_BOT",
+          "name": "Slack publicrecords bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Buyer inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buyer inputs": {
+      "main": [
+        [
+          {
+            "node": "Run Ashby Jobs (sync dataset)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Ashby Jobs (sync dataset)": {
+      "main": [
+        [
+          {
+            "node": "Filter sales / RevOps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter sales / RevOps": {
+      "main": [
+        [
+          {
+            "node": "Slack hiring alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "G2 tutorial 1: Slack alert for sales/RevOps roles on Ashby boards via publicrecords/ashby-jobs-scraper. EXAMPLES_REPO_MISSING until geminigeorge22/apify-jobs-examples exists."
+  }
+}

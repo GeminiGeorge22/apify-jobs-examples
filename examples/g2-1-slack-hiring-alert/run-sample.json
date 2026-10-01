@@ -1,0 +1,43 @@
+{
+  "apify_run_id": "2lLsvNkFl4kgHSpTQ",
+  "dataset_id": "vcNHUWY9a6wyjnugo",
+  "status": "SUCCEEDED",
+  "item_count": 20,
+  "matched_sales_revops": 4,
+  "hits": [
+    {
+      "ats": "ashby",
+      "company": "notion",
+      "title": "Forward Deployed Architect",
+      "url": "https://jobs.ashbyhq.com/notion/8cb74a17-1685-4f92-8314-6ef6264b5085",
+      "department": "Sales",
+      "published_at": "2026-10-01T04:52:27.504Z"
+    },
+    {
+      "ats": "ashby",
+      "company": "ramp",
+      "title": "Partner Development Representative | Accounting",
+      "url": "https://jobs.ashbyhq.com/ramp/b55447c0-4adc-42eb-9ca2-f88fd44e0e5b",
+      "department": "Sales",
+      "published_at": "2026-09-30T22:45:28.341Z"
+    },
+    {
+      "ats": "ashby",
+      "company": "notion",
+      "title": "Global Head of Land Revenue",
+      "url": "https://jobs.ashbyhq.com/notion/33ca1c55-e2e4-49a2-a09f-68c83cb540e3",
+      "department": "Sales",
+      "published_at": "2026-09-30T19:19:51.852Z"
+    },
+    {
+      "ats": "ashby",
+      "company": "attio",
+      "title": "Technical Support Specialist",
+      "url": "https://jobs.ashbyhq.com/attio/285f98e6-0b65-4688-b381-8ab6b7cff1ca",
+      "department": "GTM",
+      "published_at": "2026-09-28T15:56:41.929Z"
+    }
+  ],
+  "slack_channel": "C0C4G5A6TN0",
+  "slack_ts": "1790865703.223109"
+}
