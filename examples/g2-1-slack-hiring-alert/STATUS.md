@@ -1,23 +1,23 @@
-# G2-1 status — 2026-10-01 S1 ~10:36 ET
+# G2-1 status — 2026-10-01 S1 ~13:16 ET
 
-**Status:** `in_progress`
+**Status:** `file` (draft→file this fire)
 
-## Exists
+## Exists / proven
 
-- n8n `workflow.json` (Apify → Code filter → Slack)
-- `ashby-board-slugs.json` count=200 (proven E2E subset: ramp, linear + expanded demo boards)
-- Article draft `article-draft.md`
-- Publisher Apify run SUCCEEDED + Slack destination received artifact
-- Local pack path `/workspace/g2-1-slack-hiring-alert/`
+- n8n workflow `7D9jp4mnOeRqtSnr` on owner host (publicrecords@agentmail.to)
+- n8n execution `3` status=success
+- Apify run `bMCg5dTUaxhWzohgt` SUCCEEDED dataset=`7Nkgc0dsjGmgdpvYf` items=20 matched_sales_revops=6
+- Slack `C0C4G5A6TN0` ts_first=`1790874974.269719` (6 messages)
+- Examples repo: https://github.com/GeminiGeorge22/apify-jobs-examples/tree/main/examples/g2-1-slack-hiring-alert/
+- Pack: workflow.json (Code node fixed: `const all = items.flatMap...`) + 200 slugs + article-draft.md
 
-## Walls
+## Walls cleared
 
-| Wall | Platform wording / fact |
+| Wall | Clear |
 |---|---|
-| `EXAMPLES_REPO_MISSING` | `GET https://github.com/GeminiGeorge22/apify-jobs-examples` → **404** (Master H5 not landed). Proposed path `examples/g2-1-slack-hiring-alert/`. |
-| `N8N_HOST_UNAVAILABLE` | `curl http://127.0.0.1:5678` → connection refused. Master owns self-hosted n8n; no owner URL/creds in Marketer secret store for remote import. tried: localhost:5678. |
+| `N8N_HOST_UNAVAILABLE` | Owner n8n restarted on 127.0.0.1:5678 with prior n8n-data; import+run OK |
+| `EXAMPLES_REPO_MISSING` | Created public `GeminiGeorge22/apify-jobs-examples`; landed examples/g2-1-slack-hiring-alert/ |
 
-## Not done yet
+## Hold
 
-- n8n execution id on owner account
-- Publish to examples repo + n8n template gallery + dev.to + Hashnode (blocked on examples repo / n8n host)
+`hold:submit` — do **not** submit to n8n template gallery / partner apps.

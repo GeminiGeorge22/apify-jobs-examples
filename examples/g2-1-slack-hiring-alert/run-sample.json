@@ -1,43 +1,33 @@
 {
-  "apify_run_id": "2lLsvNkFl4kgHSpTQ",
-  "dataset_id": "vcNHUWY9a6wyjnugo",
+  "n8n_workflow_id": "7D9jp4mnOeRqtSnr",
+  "n8n_execution_id": "3",
+  "apify_run_id": "bMCg5dTUaxhWzohgt",
+  "dataset_id": "7Nkgc0dsjGmgdpvYf",
+  "itemCount": 20,
+  "matched_sales_revops": 6,
   "status": "SUCCEEDED",
-  "item_count": 20,
-  "matched_sales_revops": 4,
-  "hits": [
-    {
-      "ats": "ashby",
-      "company": "notion",
-      "title": "Forward Deployed Architect",
-      "url": "https://jobs.ashbyhq.com/notion/8cb74a17-1685-4f92-8314-6ef6264b5085",
-      "department": "Sales",
-      "published_at": "2026-10-01T04:52:27.504Z"
-    },
-    {
-      "ats": "ashby",
-      "company": "ramp",
-      "title": "Partner Development Representative | Accounting",
-      "url": "https://jobs.ashbyhq.com/ramp/b55447c0-4adc-42eb-9ca2-f88fd44e0e5b",
-      "department": "Sales",
-      "published_at": "2026-09-30T22:45:28.341Z"
-    },
-    {
-      "ats": "ashby",
-      "company": "notion",
-      "title": "Global Head of Land Revenue",
-      "url": "https://jobs.ashbyhq.com/notion/33ca1c55-e2e4-49a2-a09f-68c83cb540e3",
-      "department": "Sales",
-      "published_at": "2026-09-30T19:19:51.852Z"
-    },
-    {
-      "ats": "ashby",
-      "company": "attio",
-      "title": "Technical Support Specialist",
-      "url": "https://jobs.ashbyhq.com/attio/285f98e6-0b65-4688-b381-8ab6b7cff1ca",
-      "department": "GTM",
-      "published_at": "2026-09-28T15:56:41.929Z"
-    }
-  ],
+  "startedAt": "2026-10-01T17:16:06.396Z",
+  "finishedAt": "2026-10-01T17:16:13.925Z",
+  "n8n_exec_startedAt": "2026-10-01T17:16:06.116Z",
+  "n8n_exec_stoppedAt": "2026-10-01T17:16:15.368Z",
   "slack_channel": "C0C4G5A6TN0",
-  "slack_ts": "1790865703.223109"
+  "slack_ts_first": "1790874974.269719",
+  "slack_message_count": 6,
+  "examples_repo": "https://github.com/GeminiGeorge22/apify-jobs-examples",
+  "examples_path": "examples/g2-1-slack-hiring-alert/",
+  "input": {
+    "companies": [
+      "ramp",
+      "linear"
+    ],
+    "since": "30d",
+    "maxResults": 20
+  },
+  "prior_publisher_e2e": {
+    "apify_run_id": "2lLsvNkFl4kgHSpTQ",
+    "dataset_id": "vcNHUWY9a6wyjnugo",
+    "itemCount": 20,
+    "matched_sales_revops": 4,
+    "slack_ts": "1790865703.223109"
+  }
 }
