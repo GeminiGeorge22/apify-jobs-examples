@@ -1,0 +1,232 @@
+{
+  "name": "G2-3 Competitors hiring by department \u2192 Google Sheets",
+  "nodes": [
+    {
+      "id": "bbe2d281-406f-4e11-9203-cc658fd7f399",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -380
+      ],
+      "parameters": {
+        "content": "## G2-3 \u2014 Track competitors' hiring by department every week in Google Sheets\n\n**Who:** competitive intel / strategy / talent-competitor watchers.\n\n**Flow:** Schedule \u2192 Buyer inputs \u2192 Apify `publicrecords/greenhouse-jobs-scraper` \u2192 Code (department label Engineering/Sales/\u2026) \u2192 Google Sheets Append.\n\n**Setup:** 1) Header Auth `Authorization: Bearer <APIFY_TOKEN>` (publisher). 2) Google Sheets OAuth. 3) Edit companies / since / maxResults / sheetDocumentId / sheetName. 4) Full ~200 slug list: `greenhouse-board-slugs.json`.\n\n**Cost:** actor-start $0.005 + $0.0009/job; keep maxResults\u226460 and maxTotalChargeUsd\u22640.5 for demos.",
+        "height": 500,
+        "width": 560,
+        "color": 4
+      }
+    },
+    {
+      "id": "c22912f6-092a-430c-9a24-807c35c582c1",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "0a69c30d-bf8f-4d03-964a-6f7125966342",
+      "name": "Buyer inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9e571f70-fbd8-46f3-9d3f-28af522a545e",
+              "name": "actorInput",
+              "value": "{\"companies\": [\"gitlab\", \"cloudflare\", \"datadog\", \"twilio\", \"discord\", \"figma\", \"robinhood\", \"coinbase\"], \"since\": \"90d\", \"maxResults\": 60, \"includeDescription\": false}",
+              "type": "string"
+            },
+            {
+              "id": "48d6dd94-0ea0-41b3-b855-1cf16b627551",
+              "name": "since",
+              "value": "90d",
+              "type": "string"
+            },
+            {
+              "id": "abf994d0-8d5e-4abc-bead-c8d150231afd",
+              "name": "maxTotalChargeUsd",
+              "value": 0.5,
+              "type": "number"
+            },
+            {
+              "id": "6f33c84a-a7c4-4569-bd63-d6f438853d1a",
+              "name": "sheetDocumentId",
+              "value": "16N1moNeErI0DUXJ9LUQ7Zxv83UWoDyLK5dOpw0ChXaU",
+              "type": "string"
+            },
+            {
+              "id": "b5a5aa85-2861-4d2e-a436-c9329d2b4db6",
+              "name": "sheetName",
+              "value": "CompetitorHiring",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "25b8ad76-fde3-443b-933e-88cd8b235b84",
+      "name": "Run Greenhouse Jobs (sync dataset)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.apify.com/v2/acts/publicrecords~greenhouse-jobs-scraper/run-sync-get-dataset-items?timeout=300&build=latest&maxTotalChargeUsd={{ $json.maxTotalChargeUsd }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.actorInput }}",
+        "options": {
+          "timeout": 300000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_APIFY_HEADER_AUTH",
+          "name": "Apify Publisher Header Auth"
+        }
+      }
+    },
+    {
+      "id": "8b164ebd-30b9-45b7-a605-e1901b4a302c",
+      "name": "Label jobs by department",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const RULES = [\n  [/sales engineer|solutions engineer|sales|account executive|\\bae\\b|sdr|bdr|revenue|account manager|customer success|\\bcsm\\b|partnerships|gtm/i, 'Sales'],\n  [/product manager|product design|\\bproduct\\b|\\bpm\\b|roadmap/i, 'Product'],\n  [/design|\\bux\\b|\\bui\\b|brand designer|visual|creative director/i, 'Design'],\n  [/marketing|growth|demand gen|content|\\bseo\\b|\\bsem\\b|brand|comms|communications|\\bpr\\b/i, 'Marketing'],\n  [/people|talent|recruiter|recruiting|\\bhr\\b|human resources|people ops|workforce/i, 'People'],\n  [/finance|accounting|controller|fp&a|treasury|payroll/i, 'Finance'],\n  [/legal|counsel|compliance|privacy|policy/i, 'Legal'],\n  [/operations|\\bops\\b|supply chain|logistics|business operations|strategy/i, 'Operations'],\n  [/support|customer support|helpdesk|success engineer/i, 'Support'],\n  [/data science|analytics|analyst|\\bbi\\b|business intelligence/i, 'Data'],\n  [/engineer|engineering|software|backend|frontend|fullstack|full-stack|devops|sre|platform|infrastructure|data engineer|ml engineer|machine learning|security engineer|\\bqa\\b|quality assurance|developer|architect/i, 'Engineering'],\n];\nfunction labelDept(title, deptRaw) {\n  const hay = `${title} ${deptRaw}`;\n  for (const [re, lab] of RULES) {\n    if (re.test(hay)) return lab;\n  }\n  if (deptRaw && String(deptRaw).trim()) return String(deptRaw).trim();\n  return 'Other';\n}\nconst all = items.flatMap(i => Array.isArray(i.json) ? i.json.map(j=>({json:j})) : [i]);\nconst scrapedAt = new Date().toISOString();\nconst out = [];\nfor (const it of all) {\n  const j = it.json || {};\n  const title = String(j.title || j.jobTitle || j.name || '');\n  const deptRaw = String(j.department || j.team || '');\n  if (!title) continue;\n  const departmentLabel = labelDept(title, deptRaw);\n  out.push({\n    json: {\n      company: j.company || j.companyName || '',\n      title,\n      department: deptRaw,\n      departmentLabel,\n      location: j.location || (Array.isArray(j.locations) ? j.locations.join('; ') : '') || '',\n      jobUrl: j.url || j.jobUrl || j.source_url || j.apply_url || '',\n      postedAt: j.published_at || j.postedAt || j.updated_at || '',\n      ats: j.ats || 'greenhouse',\n      scrapedAt,\n      competitorWatchlist: 1\n    }\n  });\n}\nif (!out.length) {\n  return [{json: {matched: 0, note: 'No jobs returned in this batch', scanned: all.length, scrapedAt}}];\n}\nreturn out.map(h => ({json: {...h.json, matched: 1, scanned: all.length}}));"
+      }
+    },
+    {
+      "id": "8213f401-e1d8-45ea-b676-459d48055ae6",
+      "name": "Google Sheets: Append rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1160,
+        0
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Buyer inputs').item.json.sheetDocumentId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Buyer inputs').item.json.sheetName }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Buyer inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buyer inputs": {
+      "main": [
+        [
+          {
+            "node": "Run Greenhouse Jobs (sync dataset)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Greenhouse Jobs (sync dataset)": {
+      "main": [
+        [
+          {
+            "node": "Label jobs by department",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label jobs by department": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Append rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "G2 tutorial 3: weekly competitor hiring by department via publicrecords/greenhouse-jobs-scraper into Google Sheets."
+  }
+}
