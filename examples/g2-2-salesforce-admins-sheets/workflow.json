@@ -1,0 +1,232 @@
+{
+  "name": "G2-2 Salesforce admins \u2192 Google Sheets (Clay-ready)",
+  "nodes": [
+    {
+      "id": "01086613-a361-4459-9e22-bd92f2128011",
+      "name": "About",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -380
+      ],
+      "parameters": {
+        "content": "## G2-2 \u2014 Weekly Salesforce-admin hiring list in Google Sheets\n\n**Who:** outbound / RevOps / Clay ops watching startup boards for Salesforce Administrator roles.\n\n**Flow:** Schedule \u2192 Buyer inputs \u2192 Apify `publicrecords/ashby-jobs-scraper` \u2192 Code filter (Salesforce admin / RevOps-adjacent) \u2192 Google Sheets Append.\n\n**Setup:** 1) Header Auth `Authorization: Bearer <APIFY_TOKEN>` (publisher). 2) Google Sheets OAuth. 3) Edit companies / since / maxResults / sheetDocumentId / sheetName. 4) Full ~200 slug list: `ashby-board-slugs.json`.\n\n**Cost:** actor-start $0.005 + $0.0009/job; keep maxResults\u226440 and maxTotalChargeUsd\u22640.5 for demos.",
+        "height": 480,
+        "width": 540,
+        "color": 4
+      }
+    },
+    {
+      "id": "a47ab4d8-a364-4f64-aa09-36bf61090e47",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "165b559d-364a-4f78-8873-a0cb7ddb228a",
+      "name": "Buyer inputs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        280,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "55ec2f2e-aac1-46b3-a052-08536256d516",
+              "name": "actorInput",
+              "value": "{\"companies\": [\"vibe\", \"companycam\", \"medely\", \"jump-app\", \"ramp\", \"linear\", \"notion\", \"vercel\", \"retool\", \"mercury\", \"plaid\", \"brex\", \"rippling\", \"gusto\", \"deel\", \"lattice\", \"gong\", \"apollo\", \"attio\", \"posthog\"], \"since\": \"180d\", \"maxResults\": 40, \"includeDescription\": false}",
+              "type": "string"
+            },
+            {
+              "id": "443c2752-2b7e-48d4-baf1-5b625a3ea4c7",
+              "name": "since",
+              "value": "180d",
+              "type": "string"
+            },
+            {
+              "id": "c3de4152-7ddb-4ebb-86e4-a9c0e254324e",
+              "name": "maxTotalChargeUsd",
+              "value": 0.5,
+              "type": "number"
+            },
+            {
+              "id": "7fb8238a-2aba-48fd-b8f1-30aadc9365e5",
+              "name": "sheetDocumentId",
+              "value": "16N1moNeErI0DUXJ9LUQ7Zxv83UWoDyLK5dOpw0ChXaU",
+              "type": "string"
+            },
+            {
+              "id": "c39e9b72-fcb7-4ef0-9fa1-c0a62d9e74e6",
+              "name": "sheetName",
+              "value": "SalesforceAdmins",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "96a8196c-29a9-4e9b-89fa-972c3ef37eeb",
+      "name": "Run Ashby Jobs (sync dataset)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.apify.com/v2/acts/publicrecords~ashby-jobs-scraper/run-sync-get-dataset-items?timeout=300&build=latest&maxTotalChargeUsd={{ $json.maxTotalChargeUsd }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.actorInput }}",
+        "options": {
+          "timeout": 300000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_APIFY_HEADER_AUTH",
+          "name": "Apify Publisher Header Auth"
+        }
+      }
+    },
+    {
+      "id": "ebf02084-c3b6-4de0-b25a-9434b181d69c",
+      "name": "Filter Salesforce admin roles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        860,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const KEYWORDS = [\n  /salesforce\\s*admin/i,\n  /salesforce\\s*administrator/i,\n  /\\bsf\\s*admin\\b/i,\n  /salesforce\\s*ops/i,\n  /salesforce\\s*analyst/i,\n  /salesforce\\s*architect/i,\n  /salesforce\\s*developer/i,\n  /salesforce\\s*engineer/i,\n  /crm\\s*admin/i,\n  /revops.*salesforce/i,\n  /salesforce.*revops/i,\n  /gtm systems.*salesforce/i,\n  /salesforce/i\n];\nconst all = items.flatMap(i => Array.isArray(i.json) ? i.json.map(j=>({json:j})) : [i]);\nconst hits = [];\nconst scrapedAt = new Date().toISOString();\nfor (const it of all) {\n  const j = it.json || {};\n  const title = String(j.title || j.jobTitle || j.name || '');\n  const dept = String(j.department || j.team || '');\n  const hay = title + ' ' + dept;\n  const matched = KEYWORDS.find(re => re.test(hay));\n  if (!matched) continue;\n  hits.push({\n    json: {\n      company: j.company || j.companyName || '',\n      title,\n      department: dept,\n      location: j.location || (Array.isArray(j.locations) ? j.locations.join('; ') : '') || '',\n      jobUrl: j.url || j.jobUrl || j.source_url || j.apply_url || '',\n      postedAt: j.published_at || j.postedAt || j.updated_at || '',\n      matchedKeyword: matched.source || String(matched),\n      scrapedAt,\n      ats: j.ats || 'ashby'\n    }\n  });\n}\nif (!hits.length) {\n  return [{json: {matched: 0, note: 'No Salesforce-admin / RevOps-Salesforce titles in this batch', scanned: all.length, scrapedAt}}];\n}\nreturn hits.map(h => ({json: {...h.json, matched: 1, scanned: all.length}}));\n"
+      }
+    },
+    {
+      "id": "492f9183-0457-40ec-b860-44abbb9ef23f",
+      "name": "Google Sheets: Append rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1160,
+        0
+      ],
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Buyer inputs').item.json.sheetDocumentId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Buyer inputs').item.json.sheetName }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_GOOGLE_SHEETS",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Buyer inputs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buyer inputs": {
+      "main": [
+        [
+          {
+            "node": "Run Ashby Jobs (sync dataset)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Ashby Jobs (sync dataset)": {
+      "main": [
+        [
+          {
+            "node": "Filter Salesforce admin roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Salesforce admin roles": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets: Append rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "G2 tutorial 2: weekly Salesforce-admin hiring list via publicrecords/ashby-jobs-scraper into Google Sheets (Clay-ready)."
+  }
+}

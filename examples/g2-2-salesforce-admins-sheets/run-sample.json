@@ -1,0 +1,84 @@
+{
+  "unit": "growth/g2-2-salesforce-admins-sheets",
+  "as_of": "2026-10-01T13:43:25-04:00",
+  "n8n_workflow_id": "MigmodStRUNleVwu",
+  "n8n_execution_id": "4",
+  "n8n_status": "success",
+  "apify_run_id": "IKM1vdCITqBEyxXSe",
+  "apify_status": "SUCCEEDED",
+  "dataset_id": "kmGcLcyHPZ2cER0In",
+  "itemCount": 39,
+  "matched_salesforce_admin": 4,
+  "spreadsheetId": "16N1moNeErI0DUXJ9LUQ7Zxv83UWoDyLK5dOpw0ChXaU",
+  "sheetName": "SalesforceAdmins",
+  "rows_appended": 4,
+  "row_range": "SalesforceAdmins!A2:H5",
+  "examples_path": "examples/g2-2-salesforce-admins-sheets/",
+  "actor": "publicrecords/ashby-jobs-scraper",
+  "input": {
+    "companies": [
+      "vibe",
+      "companycam",
+      "medely",
+      "jump-app"
+    ],
+    "since": "180d",
+    "maxResults": 40
+  },
+  "matches": [
+    {
+      "company": "companycam",
+      "title": "Salesforce Administrator",
+      "department": "Sales",
+      "location": "Remote",
+      "jobUrl": "https://jobs.ashbyhq.com/companycam/b2e4c9a0-84fa-45f7-8a18-e88c81a38277",
+      "postedAt": "2026-09-23T21:20:16.636Z",
+      "matchedKeyword": "salesforce\\s*admin",
+      "scrapedAt": "2026-10-01T17:43:25.556Z",
+      "ats": "ashby",
+      "matched": 1,
+      "scanned": 39
+    },
+    {
+      "company": "vibe",
+      "title": "Senior Salesforce Administrator",
+      "department": "Revenue",
+      "location": "New York",
+      "jobUrl": "https://jobs.ashbyhq.com/vibe/f3e7c6b0-1cef-49c7-a0b9-a967171b666d",
+      "postedAt": "2026-09-21T14:37:12.949Z",
+      "matchedKeyword": "salesforce\\s*admin",
+      "scrapedAt": "2026-10-01T17:43:25.556Z",
+      "ats": "ashby",
+      "matched": 1,
+      "scanned": 39
+    },
+    {
+      "company": "medely",
+      "title": "Senior Salesforce Administrator (GTM Systems)",
+      "department": "Sales Department",
+      "location": "Remote",
+      "jobUrl": "https://jobs.ashbyhq.com/medely/e2d1c4a7-37b3-4219-8741-609c7e70f5cc",
+      "postedAt": "2026-09-09T22:08:30.965Z",
+      "matchedKeyword": "salesforce\\s*admin",
+      "scrapedAt": "2026-10-01T17:43:25.556Z",
+      "ats": "ashby",
+      "matched": 1,
+      "scanned": 39
+    },
+    {
+      "company": "jump-app",
+      "title": "Global Salesforce Administrator",
+      "department": "Engineering, Product & Design",
+      "location": "Remote",
+      "jobUrl": "https://jobs.ashbyhq.com/jump-app/5c473f46-62d8-4603-bf59-eeeafe2f4785",
+      "postedAt": "2026-08-26T16:50:54.663Z",
+      "matchedKeyword": "salesforce\\s*admin",
+      "scrapedAt": "2026-10-01T17:43:25.556Z",
+      "ats": "ashby",
+      "matched": 1,
+      "scanned": 39
+    }
+  ],
+  "cost_usd_approx": 0.0401,
+  "hold": "submit"
+}
